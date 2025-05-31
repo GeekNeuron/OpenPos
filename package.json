@@ -1,1 +1,24 @@
-
+{
+  "name": "openpos",
+  "version": "1.5.0",
+  "description": "OpenPos - Exchange Positions Viewer",
+  "source": "index.html",
+  "scripts": {
+    "start": "parcel --open",
+    "dev": "parcel --open",
+    "build": "parcel build --public-url ./",
+    "test": "echo \"Error: no test runner configured yet, but see tests/ for examples\" && exit 1"
+  },
+  "keywords": [
+    "javascript",
+    "positions",
+    "exchange",
+    "api",
+    "pwa"
+  ],
+  "author": "GeekNeuron",
+  "license": "MIT",
+  "devDependencies": {
+    "parcel": "^2.12.0"
+  }
+}
