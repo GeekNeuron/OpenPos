@@ -1,0 +1,28 @@
+{
+    "pageTitle": "Open Exchange Positions - OpenPos",
+    "headerTitle": "📊 Open Positions",
+    "positionsListTitle": "Positions List:",
+    "loadingMessage": "Loading data...",
+    "noPositionsMessage": "No open positions found at the moment.",
+    "errorMessageDefault": "An error occurred while fetching data. Please try again later.",
+    "errorFailedToFetch": "Could not connect to the server. Please check your internet connection and ensure the API endpoint is correct (CORS might be an issue).",
+    "errorUnauthorized": "Access to the API is unauthorized. Please check your API key if required.",
+    "errorNotFound": "The API endpoint was not found.",
+    "footerText": "Built for",
+    "positionCard": {
+        "symbol": "Symbol",
+        "type": "Type",
+        "long": "Long",
+        "short": "Short",
+        "unknown": "Unknown",
+        "entryPrice": "Entry Price",
+        "amount": "Amount",
+        "leverage": "Leverage",
+        "pnl": "PnL",
+        "user": "User",
+        "timestamp": "Time",
+        "na": "N/A"
+    },
+    "lang_en": "EN",
+    "lang_fa": "FA"
+}
