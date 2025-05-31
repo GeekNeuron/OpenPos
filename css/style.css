@@ -1,0 +1,350 @@
+/* Import Vazirmatn if self-hosting (alternative to CDN in HTML) */
+/* @import url('../assets/fonts/Vazirmatn-FD-font-face.css'); */
+
+:root {
+    /* Light Theme (Default) */
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --card-bg-color: #ffffff;
+    --card-border-color: #e9ecef;
+    --card-shadow-color: rgba(0, 0, 0, 0.05);
+    --header-bg-color: #ffffff;
+    --header-text-color: #212529;
+    --header-border-color: #e9ecef;
+    --accent-color: #007bff;
+    --accent-color-hover: #0056b3;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --neutral-color-light: #6c757d;
+    --neutral-color-dark: #495057;
+    --link-color: var(--accent-color);
+
+    --font-primary: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-secondary: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* For Persian text, Vazirmatn will be primary */
+}
+
+.dark-theme {
+    --bg-color: #1a1a1a; /* Darker background */
+    --text-color: #e0e0e0; /* Lighter text */
+    --card-bg-color: #2c2c2c; /* Darker cards */
+    --card-border-color: #444444;
+    --card-shadow-color: rgba(0, 0, 0, 0.2);
+    --header-bg-color: #252525;
+    --header-text-color: #e0e0e0;
+    --header-border-color: #3a3a3a;
+    --accent-color: #0095ff; /* Brighter accent for dark mode */
+    --accent-color-hover: #0077cc;
+    --success-color: #30c755;
+    --danger-color: #f05060;
+    --neutral-color-light: #a0a0a0;
+    --neutral-color-dark: #c0c0c0;
+    --link-color: var(--accent-color);
+}
+
+/* Base Styles */
+body {
+    font-family: var(--font-primary);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    line-height: 1.7;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 16px; /* Base font size */
+}
+
+body.fa { /* Apply Vazirmatn more specifically when Persian is active */
+    font-family: 'Vazirmatn', var(--font-primary);
+    direction: rtl;
+}
+
+body.fa header .header-content,
+body.fa main.container,
+body.fa footer .container {
+    direction: rtl;
+}
+
+body.fa .controls {
+    margin-right: auto; /* Push controls to the left in RTL */
+    margin-left: 0;
+}
+body.fa .position-card .user-info {
+    text-align: left; /* User info to the left in RTL */
+}
+
+
+/* Container */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Header */
+header {
+    background-color: var(--header-bg-color);
+    color: var(--header-text-color);
+    padding: 1rem 0;
+    box-shadow: 0 2px 5px var(--card-shadow-color);
+    border-bottom: 1px solid var(--header-border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--header-text-color);
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.controls button {
+    background: none;
+    border: 1px solid var(--card-border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.controls button:hover {
+    background-color: var(--card-border-color);
+}
+
+.controls button img {
+    width: 18px;
+    height: 18px;
+    filter: var(--text-color) == #e0e0e0 ? invert(1) : invert(0); /* Basic icon color inversion for dark mode */
+}
+.dark-theme .controls button img {
+    filter: invert(1);
+}
+
+#theme-toggle-button .theme-icon-dark { display: block; }
+#theme-toggle-button .theme-icon-light { display: none; }
+.dark-theme #theme-toggle-button .theme-icon-dark { display: none; }
+.dark-theme #theme-toggle-button .theme-icon-light { display: block; }
+
+
+/* Main Content */
+main {
+    padding: 30px 0;
+}
+
+#positions-container h2 {
+    color: var(--accent-color);
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+    font-size: 1.6rem;
+    font-weight: 500;
+}
+
+/* Loading Indicator */
+#loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-size: 1.1em;
+    color: var(--neutral-color-light);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--card-border-color);
+    border-top: 5px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Positions Grid & Cards */
+.positions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+.position-card {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--card-border-color);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 5px 15px var(--card-shadow-color);
+    transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out, background-color 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.position-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    /* Dark theme hover shadow */
+    .dark-theme & {
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.position-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--card-border-color);
+    padding-bottom: 12px;
+}
+
+.position-card .symbol {
+    font-weight: 700; /* Bolder symbol */
+    font-size: 1.35rem;
+    color: var(--text-color);
+}
+body.fa .position-card .symbol {
+    font-weight: 600; /* Vazirmatn has good bold, 700 might be too much */
+}
+
+
+.position-card .type {
+    padding: 7px 15px;
+    border-radius: 25px;
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.position-card .type.long { background-color: var(--success-color); }
+.position-card .type.short { background-color: var(--danger-color); }
+.position-card .type.unknown { background-color: var(--neutral-color-light); }
+
+
+.position-card .card-content p {
+    margin: 10px 0;
+    font-size: 1rem;
+    color: var(--neutral-color-dark);
+}
+body.fa .position-card .card-content p {
+    font-size: 0.95rem; /* Vazirmatn can be slightly smaller and still readable */
+}
+
+.position-card .card-content p strong {
+    color: var(--text-color);
+    font-weight: 600;
+}
+body.fa .position-card .card-content p strong {
+    font-weight: 500;
+}
+
+
+.position-card .pnl-positive { color: var(--success-color); }
+.position-card .pnl-negative { color: var(--danger-color); }
+
+.position-card .user-info {
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--neutral-color-light);
+    text-align: right;
+    border-top: 1px dashed var(--card-border-color);
+    padding-top: 10px;
+}
+
+/* Info & Error Messages */
+.info-message,
+.error-text {
+    text-align: center;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    font-size: 1.05rem;
+}
+
+.info-message {
+    background-color: var(--card-bg-color); /* Consistent with card bg */
+    border: 1px solid var(--card-border-color);
+    color: var(--neutral-color-dark);
+}
+
+.error-text {
+    background-color: #ffebee; /* Light red for error bg */
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+}
+.dark-theme .error-text {
+    background-color: #4d2323;
+    color: #ff8a80;
+    border-color: #ff8a80;
+}
+
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 25px 0;
+    margin-top: 40px;
+    color: var(--neutral-color-light);
+    font-size: 0.9em;
+    border-top: 1px solid var(--header-border-color);
+    transition: border-color 0.3s ease;
+}
+
+footer a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+footer a:hover {
+    text-decoration: underline;
+    color: var(--accent-color-hover);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 10px;
+    }
+    header h1 { font-size: 1.6rem; }
+    .positions-grid {
+        grid-template-columns: 1fr; /* Single column on smaller screens */
+    }
+    .controls { margin-top: 10px; }
+}
+
+@media (max-width: 480px) {
+    header h1 { font-size: 1.4rem; }
+    .position-card { padding: 20px; }
+    .position-card .symbol { font-size: 1.2rem; }
+    .position-card .type { padding: 6px 12px; font-size: 0.8rem; }
+    .position-card .card-content p { font-size: 0.9rem; }
+    body.fa .position-card .card-content p { font-size: 0.85rem; }
+
+}
