@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n-key="pageTitle">Open Exchange Positions - OpenPos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="light-theme"> <header>
+        <div class="container header-content">
+            <h1 data-i18n-key="headerTitle">📊 Open Positions</h1>
+            <div class="controls">
+                <button id="theme-toggle-button" aria-label="Toggle theme">
+                    <img src="assets/images/moon.svg" alt="Dark mode" class="theme-icon-dark">
+                    <img src="assets/images/sun.svg" alt="Light mode" class="theme-icon-light">
+                </button>
+                <button id="language-toggle-button" aria-label="Toggle language">
+                    <img src="assets/images/translate.svg" alt="Switch language" class="language-icon">
+                    <span id="current-lang-display">EN</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="positions-container">
+            <h2 data-i18n-key="positionsListTitle">Positions List:</h2>
+            <div id="loading-indicator">
+                <div class="spinner"></div>
+                <p data-i18n-key="loadingMessage">Loading data...</p>
+            </div>
+            <div id="positions-grid" class="positions-grid">
+                </div>
+            <p id="no-positions-message" class="info-message" style="display: none;" data-i18n-key="noPositionsMessage">
+                No open positions found at the moment.
+            </p>
+            <div id="error-message" class="error-text" style="display: none;"></div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>
+                <span data-i18n-key="footerText">Built for</span>
+                <a href="https://github.com/GeekNeuron/OpenPos" target="_blank">GeekNeuron/OpenPos</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
