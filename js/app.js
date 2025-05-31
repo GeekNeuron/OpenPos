@@ -1,71 +1,134 @@
 // js/app.js
-
-// !!! IMPORTANT: Replace with your actual API endpoint !!!
-// This is a placeholder. For GitHub Pages, if your API is on a different domain,
-// it MUST have CORS headers configured to allow requests from GeekNeuron.github.io
-const API_URL = 'https://api.example.com/open-positions'; // <<< --- !!! EDIT THIS !!!
-// const API_URL = 'https://api.coingecko.com/api/v3/derivatives/exchanges/binance_futures?include_tickers=unexpired'; // Example public API (adjust data parsing in ui.js)
-// const API_URL = 'sample_data.json'; // For local testing with a sample_data.json file in root
-
-// If your API needs a key, define it here and use fetchOpenPositionsWithApiKey
-// const API_KEY = 'YOUR_API_KEY_HERE'; // <<< --- !!! EDIT THIS IF NEEDED !!!
+/**
+ * @file Main application logic for OpenPos.
+ * Initializes the application, including theme, internationalization, and UI settings.
+ * Fetches position data from the API, validates it, and coordinates with the UI module
+ * to display the data. Also handles Service Worker registration and updates.
+ * @author GeekNeuron
+ * @version 1.3.0
+ */
 
 /**
- * Main application function.
- * Initializes theme, language, and fetches/displays position data.
+ * The API endpoint URL for fetching open positions.
+ * !!! IMPORTANT: Replace this with your actual API endpoint.
+ * @type {string}
+ * @constant
+ */
+const API_URL = 'YOUR_API_ENDPOINT_HERE'; // مثال: 'https://api.coingecko.com/api/v3/derivatives/exchanges/binance_futures?include_tickers=unexpired';
+// const API_URL = 'sample_data.json'; // برای تست محلی
+
+/**
+ * Main application function. Orchestrates initialization and data fetching.
+ * @async
+ * @function mainApp
  */
 async function mainApp() {
-    // Initialize theme and language systems first
-    // These are blocking to ensure UI is set up before content might be rendered
-    initTheme(); // from theme.js
-    await initI18n(); // from i18n.js - needs to be async
+    initTheme();
+    await initI18n(); // Must be awaited for translations to be ready
+
+    if (window.ui && typeof window.ui.loadAndApplyUiSettings === 'function') {
+        window.ui.loadAndApplyUiSettings();
+    }
 
     window.ui.setLoading(true);
+    let rawPositions = [];
 
     try {
-        // To use API with key (uncomment from api.js as well):
-        // const positions = await fetchOpenPositionsWithApiKey(API_URL, API_KEY);
-        // For API without key:
-        const positions = await fetchOpenPositions(API_URL);
+        // Fetch positions with retry logic
+        rawPositions = await fetchOpenPositions(API_URL, 3, 2500); // 3 retries, 2.5s delay
 
-        // Process and display positions.
-        // The structure of 'positions' depends on your API.
-        // The example Public API from CoinGecko returns data in `positions.tickers`
-        // If API_URL is 'https://api.coingecko.com/api/v3/derivatives/exchanges/binance_futures?include_tickers=unexpired'
-        // you might need something like:
-        // const processedPositions = positions.tickers.map(ticker => ({
-        //     symbol: ticker.symbol,
-        //     type: ticker.contract_type, // 'perpetual', 'monthly', etc. - adapt ui.js for this
-        //     entryPrice: ticker.last, // Using 'last' as a stand-in for entryPrice
-        //     amount: ticker.volume_24h, // Using 'volume_24h' as a stand-in for amount
-        //     baseAsset: ticker.base,
-        //     quoteAsset: ticker.target,
-        //     timestamp: new Date(ticker.last_traded_at * 1000).getTime()
-        // }));
-        // window.ui.displayPositions(processedPositions);
+        // Validate the structure of each position object
+        const { validatedPositions, errors: validationErrors } = validatePositionsArray(rawPositions); // from validator.js
 
-        // For a direct array of positions as described in ui.js:
-        window.ui.displayPositions(positions);
+        if (validationErrors.length > 0) {
+            console.warn('Validation Issues Encountered:', validationErrors.join('\n'));
+            if (validatedPositions.length > 0) { // If some data is still good, show a non-critical toast
+                window.ui.showToast('somePositionsInvalid', 'warning', 4000);
+            }
+        }
+
+        // Decide what to display
+        if (validatedPositions.length === 0) { // No valid positions to show
+            if (rawPositions.length > 0) { // Data was fetched, but none of it was valid
+                window.ui.displayError('noPositionsAfterValidation', validationErrors.join('\n'));
+            } else { // API returned empty or fetch failed completely before validation
+                window.ui.displayPositions([]); // ui.js will show "no positions" message
+            }
+        } else {
+            window.ui.displayPositions(validatedPositions);
+        }
 
     } catch (error) {
-        console.error('Main application error:', error);
+        console.error('Main application error (after retries, if any):', error);
         let errorMessageKey = 'errorMessageDefault';
-        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        let errorDetail = error.message;
+
+        if (error.isClientError) {
+            errorDetail = error.message.substring('API Client Error: '.length);
+            if (error.message.includes('401') || error.message.includes('403')) errorMessageKey = 'errorUnauthorized';
+            else if (error.message.includes('404')) errorMessageKey = 'errorNotFound';
+            else errorMessageKey = 'errorClientGeneric';
+        } else if (error.message.includes('Invalid API response format')) {
+            errorMessageKey = 'errorInvalidResponse';
+        } else if (error.message.startsWith('Server Error:')) {
+            errorMessageKey = 'errorServerGeneric';
+            errorDetail = error.message.substring('Server Error: '.length);
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('AbortError')) {
             errorMessageKey = 'errorFailedToFetch';
-        } else if (error.message.includes('API Error: 401') || error.message.includes('API Error: 403')) {
-            errorMessageKey = 'errorUnauthorized';
-        } else if (error.message.includes('API Error: 404')) {
-            errorMessageKey = 'errorNotFound';
         }
-        window.ui.displayError(errorMessageKey);
+        window.ui.displayError(errorMessageKey, errorDetail);
     } finally {
         window.ui.setLoading(false);
     }
 }
 
-// Run the main application logic when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', mainApp);
 
-// (Optional) Auto-refresh data at intervals
-// const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // e.g., every 5 minutes
-// setInterval(mainApp, REFRESH_INTERVAL_MS); // Be mindful of API rate limits
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(registration => {
+                console.log('Service Worker registered successfully with scope:', registration.scope);
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    if (installingWorker == null) return;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed') {
+                            if (navigator.serviceWorker.controller) {
+                                console.log('New SW content is available. Showing update toast.');
+                                window.ui.showToast(
+                                    'swUpdateAvailableToast',
+                                    'info',
+                                    0, // Stays until action
+                                    {
+                                        textKey: 'swUpdateButton',
+                                        callback: () => {
+                                            // The new SW should have called skipWaiting() in its install event
+                                            // and clients.claim() in its activate event.
+                                            // So, a reload should be enough for the new SW to take control.
+                                            window.location.reload();
+                                        }
+                                    }
+                                );
+                            } else {
+                                console.log('Content is cached for offline use.');
+                                window.ui.showToast('swContentCached', 'success', 3000);
+                            }
+                        }
+                    };
+                };
+            })
+            .catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
+    });
+
+    let refreshing;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        console.log('Controller changed. Reloading page...');
+        window.location.reload();
+        refreshing = true;
+    });
+}
