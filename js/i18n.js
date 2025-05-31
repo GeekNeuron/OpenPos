@@ -1,125 +1,189 @@
-// js/i18n.js
 
-let currentLanguage = 'en'; // Default language
-let translations = {}; // To store loaded translations
+// js/i18n.js
+/**
+ * @file Internationalization module for language switching and translations.
+ * @author GeekNeuron
+ * @version 1.2.0
+ */
+
+/**
+ * Stores the current language code (e.g., 'en', 'fa').
+ * Exported to window for global access by other modules like ui.js for date/number formatting.
+ * @type {string}
+ */
+window.currentLanguage = 'en'; // Default language, will be updated by initI18n
+
+/**
+ * Stores loaded translation objects.
+ * @type {Object<string, Object>}
+ */
+let translations = {}; // Not exposed to window, managed internally
 
 const supportedLanguages = ['en', 'fa'];
 const langToggleButton = document.getElementById('language-toggle-button');
 const currentLangDisplay = document.getElementById('current-lang-display');
 
-
 /**
  * Loads translation file for the given language.
+ * @async
  * @param {string} lang - The language code (e.g., 'en', 'fa').
- * @returns {Promise<void>}
+ * @returns {Promise<void>} Resolves when translations are loaded or rejects on error.
  */
 async function loadTranslations(lang) {
     try {
-        const response = await fetch(`locales/${lang}.json`);
+        const response = await fetch(`locales/${lang}.json?v=1.1`); // Added cache busting query param
         if (!response.ok) {
-            throw new Error(`Failed to load translations for ${lang}: ${response.statusText}`);
+            throw new Error(`Failed to load translations for ${lang}: ${response.status} ${response.statusText}`);
         }
         translations[lang] = await response.json();
         console.log(`${lang.toUpperCase()} translations loaded.`);
     } catch (error) {
         console.error(error);
         // Fallback or error handling if a translation file is missing
-        if (lang !== 'en') { // Try loading English as a fallback if not already English
+        if (lang !== 'en' && !translations['en']) { // Try loading English as a fallback if not already English or EN not loaded
+            console.warn(`Attempting to load English translations as fallback for ${lang}.`);
             await loadTranslations('en');
+        } else if (!translations['en'] && lang === 'en') {
+            console.error("Critical: Failed to load base English translations.");
+            translations['en'] = {}; // Ensure en exists to prevent errors, even if empty
         }
     }
 }
 
 /**
  * Translates a key using the loaded translations for the current language.
+ * Accesses global `window.currentLanguage` and internal `translations`.
  * @param {string} key - The translation key (e.g., "pageTitle", "positionCard.symbol").
- * @param {Object} [vars={}] - Optional variables for placeholder replacement.
- * @returns {string} The translated string or the key itself if not found.
+ * @param {Object<string, string|number>} [vars={}] - Optional variables for placeholder replacement (e.g., {{name}}).
+ * @returns {string} The translated string, or the key itself if not found or if English fallback also fails.
  */
 function translate(key, vars = {}) {
-    let langSet = translations[currentLanguage] || translations['en']; // Fallback to English
-    if (!langSet) return key; // No translations loaded at all
+    let langSet = translations[window.currentLanguage] || translations['en'];
 
-    let text = key.split('.').reduce((obj, i) => (obj ? obj[i] : null), langSet);
+    if (!langSet) { // If even English isn't loaded (critical failure)
+        console.warn(`No translations loaded for current language '${window.currentLanguage}' or English fallback for key: ${key}`);
+        return key; // Return the key itself
+    }
 
-    if (text) {
+    let text = key.split('.').reduce((obj, i) => (obj && typeof obj === 'object' ? obj[i] : undefined), langSet);
+
+    // If text not found in current language, try English fallback
+    if (text === undefined && window.currentLanguage !== 'en' && translations['en']) {
+        // console.warn(`Key '${key}' not found in '${window.currentLanguage}', trying English fallback.`);
+        langSet = translations['en'];
+        text = key.split('.').reduce((obj, i) => (obj && typeof obj === 'object' ? obj[i] : undefined), langSet);
+    }
+
+    if (text !== undefined && typeof text === 'string') {
         for (const [varKey, varValue] of Object.entries(vars)) {
-            text = text.replace(new RegExp(`{{${varKey}}}`, 'g'), varValue);
+            text = text.replace(new RegExp(`{{${varKey}}}`, 'g'), String(varValue));
         }
         return text;
     }
-    console.warn(`Translation key not found for lang '${currentLanguage}': ${key}`);
+
+    console.warn(`Translation key not found for lang '${window.currentLanguage}' (and EN fallback if different): ${key}`);
     return key; // Return the key itself if not found
 }
-
+// Export to global scope for validator.js and other modules if they don't import it directly
+window.translate = translate;
 
 /**
- * Applies translations to all elements with data-i18n-key attribute.
+ * Applies translations to all elements with `data-i18n-key` or `data-i18n-placeholder` attributes.
+ * Also updates document language, direction, and specific elements like the page title.
  */
 function applyTranslationsToPage() {
     document.querySelectorAll('[data-i18n-key]').forEach(element => {
         const key = element.getAttribute('data-i18n-key');
-        const translatedText = translate(key);
-
-        // Handle different ways to set text based on element type
-        if (element.tagName === 'INPUT' && element.type === 'placeholder') {
-            element.placeholder = translatedText;
-        } else if (element.tagName === 'TITLE') {
-            document.title = translatedText;
-        }
-        else {
-            element.textContent = translatedText;
-        }
+        element.textContent = translate(key);
     });
 
-    // Update HTML lang attribute and body class for direction
-    document.documentElement.lang = currentLanguage;
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        element.placeholder = translate(key);
+    });
+
+    // Specific elements
+    const pageTitleElement = document.querySelector('title[data-i18n-key]');
+    if (pageTitleElement) {
+        document.title = translate(pageTitleElement.getAttribute('data-i18n-key'));
+    }
+
+
+    // Update HTML lang attribute and body class/dir for text direction
+    document.documentElement.lang = window.currentLanguage;
     document.body.classList.remove('fa', 'en'); // Remove previous lang classes
-    document.body.classList.add(currentLanguage); // Add current lang class (e.g., 'fa' for RTL)
-    if (currentLanguage === 'fa') {
+    document.body.classList.add(window.currentLanguage); // Add current lang class (e.g., 'fa' for RTL)
+
+    if (window.currentLanguage === 'fa') {
         document.body.setAttribute('dir', 'rtl');
     } else {
         document.body.setAttribute('dir', 'ltr');
     }
-    if(currentLangDisplay) currentLangDisplay.textContent = translate(`lang_${currentLanguage}`).toUpperCase();
+
+    if(currentLangDisplay) {
+        currentLangDisplay.textContent = translate(`lang_${window.currentLanguage}`).toUpperCase();
+    }
+    // Translate filter dropdown options (static text content)
+    document.querySelectorAll('#type-filter option, #sort-by option').forEach(option => {
+        const key = option.getAttribute('data-i18n-key');
+        if (key) {
+            option.textContent = translate(key);
+        }
+    });
 }
 
 /**
- * Sets the current language and updates the UI.
- * @param {string} lang - The language code to set.
+ * Sets the current language, loads translations if needed, and updates the UI.
+ * @async
+ * @param {string} lang - The language code to set (e.g., 'en', 'fa').
  */
 async function setLanguage(lang) {
     if (!supportedLanguages.includes(lang)) {
         console.warn(`Unsupported language: ${lang}. Defaulting to 'en'.`);
         lang = 'en';
     }
-    currentLanguage = lang;
-    if (!translations[lang]) {
+    window.currentLanguage = lang; // Update global immediately
+
+    if (!translations[lang]) { // Load only if not already loaded
         await loadTranslations(lang);
     }
-    applyTranslationsToPage();
-    localStorage.setItem('preferredLanguage', lang); // Save preference
-    // Potentially re-render dynamic content if it's already on the page
-    if (window.currentPositionsData) { // Check if ui.js exposed current data
-        window.ui.displayPositions(window.currentPositionsData);
+
+    applyTranslationsToPage(); // Apply to static text
+
+    // Re-render dynamic content that might depend on language (e.g., dates, numbers in cards)
+    if (window.ui && typeof window.ui.applyFilterAndRender === 'function' && window.currentPositionsData) {
+        window.ui.applyFilterAndRender(); // This will re-render positions using the new language for formatting
     }
+    localStorage.setItem('preferredLanguage', lang); // Save preference
 }
 
 /**
  * Initializes the internationalization system.
- * Loads the preferred or default language.
+ * Loads the preferred or default language and applies translations.
+ * @async
  */
 async function initI18n() {
     const preferredLanguage = localStorage.getItem('preferredLanguage');
     const initialLang = supportedLanguages.includes(preferredLanguage) ? preferredLanguage : 'en';
+    window.currentLanguage = initialLang; // Set global currentLanguage here
 
-    await loadTranslations(initialLang); // Load default/preferred language first
-    currentLanguage = initialLang; // Set it after loading
+    // Ensure English is always loaded first or as a fallback if preferred lang fails
+    if (initialLang !== 'en' && !translations['en']) {
+        await loadTranslations('en');
+    }
+    if (!translations[initialLang]) { // Load preferred language if not English and not yet loaded
+        await loadTranslations(initialLang);
+    }
+    if (!translations['en']) { // Absolute fallback if English still not loaded (e.g. initialLang was 'en' and failed)
+        await loadTranslations('en');
+    }
+
+
     applyTranslationsToPage();
 
     if (langToggleButton) {
         langToggleButton.addEventListener('click', () => {
-            const newLang = currentLanguage === 'en' ? 'fa' : 'en';
+            const newLang = window.currentLanguage === 'en' ? 'fa' : 'en';
             setLanguage(newLang);
         });
     }
