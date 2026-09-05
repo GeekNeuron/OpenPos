@@ -1,6 +1,6 @@
 {
     "pageTitle": "پوزیشن‌های باز صرافی - OpenPos",
-    "headerTitle": "📊 پوزیشن‌های باز",
+    "headerTitle": "پوزیشن‌های باز",
     "positionsListTitle": "لیست پوزیشن‌ها:",
     "loadingMessage": "درحال بارگذاری اطلاعات...",
     "noPositionsMessage": "در حال حاضر هیچ پوزیشن بازی وجود ندارد.",
@@ -11,6 +11,10 @@
     "errorInvalidResponse": "فرمت پاسخ دریافتی از API نامعتبر است.",
     "errorClientGeneric": "مشکلی در درخواست وجود داشت. لطفاً ورودی یا سطح دسترسی خود را بررسی کنید.",
     "errorServerGeneric": "سرور با مشکل مواجه شد. لطفاً بعداً دوباره تلاش کنید.",
+    "errorApiNotConfigured": "هنوز هیچ آدرس API تنظیم نشده است. فایل js/app.js را باز کنید و مقدار API_URL را به آدرس API صرافی خود تغییر دهید.",
+    "statsTotalLabel": "مجموع",
+    "statsLongLabel": "خرید",
+    "statsShortLabel": "فروش",
     "footerText": "ساخته شده برای",
     "positionCard": {
         "symbol": "نماد",
@@ -19,12 +23,14 @@
         "short": "فروش (Short)",
         "unknown": "نامشخص",
         "entryPrice": "قیمت ورود",
+        "currentPrice": "قیمت لحظه‌ای",
         "amount": "مقدار",
         "leverage": "اهرم",
         "pnl": "سود/زیان",
         "user": "کاربر",
         "timestamp": "زمان",
-        "na": "نامشخص"
+        "na": "نامشخص",
+        "pinToggle": "سنجاق کردن این پوزیشن"
     },
     "lang_en": "EN",
     "lang_fa": "FA",

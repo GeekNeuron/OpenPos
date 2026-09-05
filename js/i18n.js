@@ -15,9 +15,12 @@ window.currentLanguage = 'en'; // Default language, will be updated by initI18n
 
 /**
  * Stores loaded translation objects.
+ * Exposed on window (in addition to the local binding below) so other
+ * scripts - and the test suite - can read/seed it without needing a
+ * dedicated export mechanism.
  * @type {Object<string, Object>}
  */
-let translations = {}; // Not exposed to window, managed internally
+window.translations = window.translations || {};
 
 const supportedLanguages = ['en', 'fa'];
 const langToggleButton = document.getElementById('language-toggle-button');
@@ -35,17 +38,17 @@ async function loadTranslations(lang) {
         if (!response.ok) {
             throw new Error(`Failed to load translations for ${lang}: ${response.status} ${response.statusText}`);
         }
-        translations[lang] = await response.json();
+        window.translations[lang] = await response.json();
         console.log(`${lang.toUpperCase()} translations loaded.`);
     } catch (error) {
         console.error(error);
         // Fallback or error handling if a translation file is missing
-        if (lang !== 'en' && !translations['en']) { // Try loading English as a fallback if not already English or EN not loaded
+        if (lang !== 'en' && !window.translations['en']) { // Try loading English as a fallback if not already English or EN not loaded
             console.warn(`Attempting to load English translations as fallback for ${lang}.`);
             await loadTranslations('en');
-        } else if (!translations['en'] && lang === 'en') {
+        } else if (!window.translations['en'] && lang === 'en') {
             console.error("Critical: Failed to load base English translations.");
-            translations['en'] = {}; // Ensure en exists to prevent errors, even if empty
+            window.translations['en'] = {}; // Ensure en exists to prevent errors, even if empty
         }
     }
 }
@@ -58,7 +61,7 @@ async function loadTranslations(lang) {
  * @returns {string} The translated string, or the key itself if not found or if English fallback also fails.
  */
 function translate(key, vars = {}) {
-    let langSet = translations[window.currentLanguage] || translations['en'];
+    let langSet = window.translations[window.currentLanguage] || window.translations['en'];
 
     if (!langSet) { // If even English isn't loaded (critical failure)
         console.warn(`No translations loaded for current language '${window.currentLanguage}' or English fallback for key: ${key}`);
@@ -68,9 +71,9 @@ function translate(key, vars = {}) {
     let text = key.split('.').reduce((obj, i) => (obj && typeof obj === 'object' ? obj[i] : undefined), langSet);
 
     // If text not found in current language, try English fallback
-    if (text === undefined && window.currentLanguage !== 'en' && translations['en']) {
+    if (text === undefined && window.currentLanguage !== 'en' && window.translations['en']) {
         // console.warn(`Key '${key}' not found in '${window.currentLanguage}', trying English fallback.`);
-        langSet = translations['en'];
+        langSet = window.translations['en'];
         text = key.split('.').reduce((obj, i) => (obj && typeof obj === 'object' ? obj[i] : undefined), langSet);
     }
 
@@ -123,8 +126,8 @@ function applyTranslationsToPage() {
     if(currentLangDisplay) {
         currentLangDisplay.textContent = translate(`lang_${window.currentLanguage}`).toUpperCase();
     }
-    // Translate filter dropdown options (static text content)
-    document.querySelectorAll('#type-filter option, #sort-by option').forEach(option => {
+    // Translate sort dropdown options (static text content)
+    document.querySelectorAll('#sort-by option').forEach(option => {
         const key = option.getAttribute('data-i18n-key');
         if (key) {
             option.textContent = translate(key);
@@ -144,7 +147,7 @@ async function setLanguage(lang) {
     }
     window.currentLanguage = lang; // Update global immediately
 
-    if (!translations[lang]) { // Load only if not already loaded
+    if (!window.translations[lang]) { // Load only if not already loaded
         await loadTranslations(lang);
     }
 
@@ -168,13 +171,13 @@ async function initI18n() {
     window.currentLanguage = initialLang; // Set global currentLanguage here
 
     // Ensure English is always loaded first or as a fallback if preferred lang fails
-    if (initialLang !== 'en' && !translations['en']) {
+    if (initialLang !== 'en' && !window.translations['en']) {
         await loadTranslations('en');
     }
-    if (!translations[initialLang]) { // Load preferred language if not English and not yet loaded
+    if (!window.translations[initialLang]) { // Load preferred language if not English and not yet loaded
         await loadTranslations(initialLang);
     }
-    if (!translations['en']) { // Absolute fallback if English still not loaded (e.g. initialLang was 'en' and failed)
+    if (!window.translations['en']) { // Absolute fallback if English still not loaded (e.g. initialLang was 'en' and failed)
         await loadTranslations('en');
     }
 

@@ -7,7 +7,7 @@
     "start": "parcel --open",
     "dev": "parcel --open",
     "build": "parcel build --public-url ./",
-    "test": "echo \"Error: no test runner configured yet, but see tests/ for examples\" && exit 1"
+    "test": "echo \"No automated test runner is wired up yet. Open tests.html in a browser and check the console, or add Jest and point it at tests/.\" && exit 0"
   },
   "keywords": [
     "javascript",

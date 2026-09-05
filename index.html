@@ -3,25 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#007bff"/>
+    <meta name="theme-color" content="#3548C4"/>
     <title data-i18n-key="pageTitle">Open Exchange Positions - OpenPos</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.003.1/Vazirmatn-font-face.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="assets/images/icons/icon-72x72.png" type="image/png"> </head>
+    <link rel="icon" href="assets/images/icons/icon-72x72.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/images/icons/icon-192x192.png">
+</head>
 <body class="light-theme">
     <a href="#main-content" class="skip-link" data-i18n-key="skipToMainContent">Skip to main content</a>
 
     <header>
         <div class="container header-content">
-            <h1 data-i18n-key="headerTitle">📊 Open Positions</h1>
+            <div class="brand">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="8" y1="6" x2="8" y2="16" stroke="#FF7A80" stroke-width="1.6" stroke-linecap="round"/>
+                        <rect x="6.3" y="8.6" width="3.4" height="5.6" rx="0.8" fill="#FF7A80"/>
+                        <line x1="15.5" y1="4" x2="15.5" y2="19" stroke="#4CE28A" stroke-width="1.6" stroke-linecap="round"/>
+                        <rect x="13.8" y="6.8" width="3.4" height="8.4" rx="0.8" fill="#4CE28A"/>
+                    </svg>
+                </span>
+                <h1 data-i18n-key="headerTitle">Open Positions</h1>
+            </div>
             <div class="controls">
-                <button id="theme-toggle-button" aria-label="Toggle theme">
-                    <img src="assets/images/moon.svg" alt="Dark mode" class="theme-icon-dark">
-                    <img src="assets/images/sun.svg" alt="Light mode" class="theme-icon-light">
+                <button id="theme-toggle-button" class="icon-button" aria-label="Toggle theme" type="button">
+                    <span class="theme-icon-dark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 14.4A8.6 8.6 0 1 1 9.6 3.8a7 7 0 0 0 10.6 10.6Z"/></svg>
+                    </span>
+                    <span class="theme-icon-light" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4"/><path d="M12 19.1v2.4"/><path d="M4.6 4.6l1.7 1.7"/><path d="M17.7 17.7l1.7 1.7"/><path d="M2.5 12h2.4"/><path d="M19.1 12h2.4"/><path d="M4.6 19.4l1.7-1.7"/><path d="M17.7 6.3l1.7-1.7"/></svg>
+                    </span>
                 </button>
-                <button id="language-toggle-button" aria-label="Toggle language">
-                    <img src="assets/images/translate.svg" alt="Switch language" class="language-icon">
+                <button id="language-toggle-button" class="icon-button icon-button-wide" aria-label="Toggle language" type="button">
+                    <span class="language-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.5 4 5.7 4 9s-1.4 6.5-4 9c-2.6-2.5-4-5.7-4-9s1.4-6.5 4-9Z"/></svg>
+                    </span>
                     <span id="current-lang-display">EN</span>
                 </button>
             </div>
@@ -30,22 +51,41 @@
 
     <main class="container" id="main-content">
         <section id="positions-container">
-            <h2 data-i18n-key="positionsListTitle">Positions List:</h2>
+            <div class="section-heading">
+                <h2 data-i18n-key="positionsListTitle">Positions List:</h2>
+                <div id="stats-bar" class="stats-bar" style="display: none;">
+                    <div class="stat-pill stat-total">
+                        <span class="stat-value" id="stat-total">0</span>
+                        <span class="stat-label" data-i18n-key="statsTotalLabel">Total</span>
+                    </div>
+                    <div class="stat-pill stat-long">
+                        <span class="stat-value" id="stat-long">0</span>
+                        <span class="stat-label" data-i18n-key="statsLongLabel">Long</span>
+                    </div>
+                    <div class="stat-pill stat-short">
+                        <span class="stat-value" id="stat-short">0</span>
+                        <span class="stat-label" data-i18n-key="statsShortLabel">Short</span>
+                    </div>
+                </div>
+            </div>
 
             <div id="filter-container">
-                <div>
-                    <label for="type-filter" data-i18n-key="filterByTypeLabel">Filter by Type:</label>
-                    <select id="type-filter">
-                        <option value="all" data-i18n-key="filterTypeAll">All Types</option>
-                        <option value="long" data-i18n-key="filterTypeLong">Long</option>
-                        <option value="short" data-i18n-key="filterTypeShort">Short</option>
-                    </select>
-                </div>
-                <div>
+                <div class="filter-field filter-field-search">
                     <label for="symbol-search" data-i18n-key="searchBySymbolLabel">Search Symbol:</label>
-                    <input type="search" id="symbol-search" data-i18n-placeholder="searchSymbolPlaceholder" placeholder="e.g., BTC">
+                    <div class="search-input-wrap">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+                        <input type="search" id="symbol-search" data-i18n-placeholder="searchSymbolPlaceholder" placeholder="e.g., BTC">
+                    </div>
                 </div>
-                <div>
+                <div class="filter-field">
+                    <label id="type-filter-label" data-i18n-key="filterByTypeLabel">Filter by Type:</label>
+                    <div id="type-filter" class="segmented" role="group" aria-labelledby="type-filter-label" data-value="all">
+                        <button type="button" class="segmented-btn active" data-value="all" aria-pressed="true" data-i18n-key="filterTypeAll">All Types</button>
+                        <button type="button" class="segmented-btn" data-value="long" aria-pressed="false" data-i18n-key="filterTypeLong">Long</button>
+                        <button type="button" class="segmented-btn" data-value="short" aria-pressed="false" data-i18n-key="filterTypeShort">Short</button>
+                    </div>
+                </div>
+                <div class="filter-field">
                     <label for="sort-by" data-i18n-key="sortByLabel">Sort By:</label>
                     <select id="sort-by">
                         <option value="default" data-i18n-key="sortDefault">Default</option>
@@ -63,16 +103,19 @@
                 <div class="spinner"></div>
                 <p data-i18n-key="loadingMessage">Loading data...</p>
             </div>
-            <div id="positions-grid" class="positions-grid">
-                </div>
+            <div id="positions-grid" class="positions-grid"></div>
             <p id="no-positions-message" class="info-message" style="display: none;">
-                <span class="info-icon">ℹ️</span>
+                <span class="info-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.2h.01"/></svg>
+                </span>
                 <span class="info-message-text" data-i18n-key="noPositionsMessage">
                     No open positions found at the moment.
                 </span>
             </p>
             <div id="error-message" class="error-text" style="display: none;">
-                <span class="error-icon">⚠️</span>
+                <span class="error-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 16.2h.01"/><path d="M10.3 3.9 1.9 18a1.8 1.8 0 0 0 1.6 2.7h17a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0Z"/></svg>
+                </span>
                 <span class="error-message-text"></span>
             </div>
         </section>
@@ -86,7 +129,7 @@
         <div class="container">
             <p>
                 <span data-i18n-key="footerText">Built for</span>
-                <a href="https://github.com/GeekNeuron/OpenPos" target="_blank">GeekNeuron/OpenPos</a>
+                <a href="https://github.com/GeekNeuron/OpenPos" target="_blank" rel="noopener">GeekNeuron/OpenPos</a>
             </p>
         </div>
     </footer>
@@ -97,10 +140,5 @@
     <script src="js/validator.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/validator.js"></script>
-    <script src="js/i18n.js"></script> <script src="js/ui.js"></script>    <script src="js/simple-jest-mock.js"></script>
-    <script src="tests/validator.test.js"></script>
-    <script src="tests/i18n.test.js"></script>
-    <script src="tests/ui.test.js"></script>
-  </body>
+</body>
 </html>

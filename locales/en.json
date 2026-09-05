@@ -1,6 +1,6 @@
 {
     "pageTitle": "Open Exchange Positions - OpenPos",
-    "headerTitle": "📊 Open Positions",
+    "headerTitle": "Open Positions",
     "positionsListTitle": "Positions List:",
     "loadingMessage": "Loading data...",
     "noPositionsMessage": "No open positions found at the moment.",
@@ -11,6 +11,10 @@
     "errorInvalidResponse": "Received an invalid response format from the API.",
     "errorClientGeneric": "There was a problem with the request. Please check your input or permissions.",
     "errorServerGeneric": "The server encountered an issue. Please try again later.",
+    "errorApiNotConfigured": "No API endpoint is configured yet. Open js/app.js and set API_URL to your exchange's positions endpoint.",
+    "statsTotalLabel": "Total",
+    "statsLongLabel": "Long",
+    "statsShortLabel": "Short",
     "footerText": "Built for",
     "positionCard": {
         "symbol": "Symbol",
@@ -19,12 +23,14 @@
         "short": "Short",
         "unknown": "Unknown",
         "entryPrice": "Entry Price",
+        "currentPrice": "Current Price",
         "amount": "Amount",
         "leverage": "Leverage",
         "pnl": "PnL",
         "user": "User",
         "timestamp": "Time",
-        "na": "N/A"
+        "na": "N/A",
+        "pinToggle": "Pin this position"
     },
     "lang_en": "EN",
     "lang_fa": "FA",

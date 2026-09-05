@@ -1,3 +1,4 @@
+(function () {
 // tests/validator.test.js
 
 // This test file assumes that the functions `validatePositionObject` and `validatePositionsArray`
@@ -10,8 +11,21 @@
 // export { validatePositionObject, validatePositionsArray };
 
 // --- Mocking window.translate for tests if validator.js relies on it globally ---
+// Self-contained (deliberately NOT reading window.translations - that's loaded
+// asynchronously by i18n.js's fetch() and won't have resolved yet by the time
+// this file's synchronous describe()/test() calls run, so a mock that depends
+// on it would silently see empty data). Templates mirror locales/en.json's
+// validationError* keys, which is what validator.js actually looks up.
+const VALIDATION_MESSAGE_TEMPLATES = {
+    validationErrorNotObject: "Position data is not a valid object.",
+    validationErrorRequiredField: "Field '{{field}}' is required.",
+    validationErrorInvalidType: "Field '{{field}}' has invalid type. Expected {{expectedType}}, got {{actualType}}.",
+    validationErrorInvalidEnumValue: "Field '{{field}}' has invalid value '{{value}}'. Allowed: {{allowed}}.",
+    validationErrorInvalidPositionType: "Position type '{{typeValue}}' is not recognized. Must be 'long', 'short', 'buy', or 'sell'.",
+    validationErrorNotArray: "Invalid API response: Expected an array of positions.",
+};
 const mockTranslate = (key, vars = {}) => {
-    let message = String(key); // Ensure key is a string
+    let message = VALIDATION_MESSAGE_TEMPLATES[key] !== undefined ? VALIDATION_MESSAGE_TEMPLATES[key] : String(key);
     for (const k in vars) {
         message = message.replace(new RegExp(`{{${k}}}`, 'g'), String(vars[k]));
     }
@@ -19,7 +33,13 @@ const mockTranslate = (key, vars = {}) => {
 };
 // If validator.js uses window.translate, ensure it's set before tests.
 // This is a simplified approach. Jest provides robust mocking (jest.mock, jest.spyOn).
+// NOTE: this mock is only valid for THIS file's assertions (which check that error
+// messages echo back key names/placeholders). It must be restored afterwards -
+// see the restoration at the bottom of this IIFE - or it silently corrupts
+// window.translate for any test file that loads after this one on the same page.
+let _originalTranslateForRestore;
 if (typeof window !== 'undefined') {
+    _originalTranslateForRestore = window.translate;
     window.translate = mockTranslate;
 } else {
     global.translate = mockTranslate; // For Node.js like environment (Jest)
@@ -126,7 +146,7 @@ describe('validatePositionsArray', () => {
         const result = validatePositionsArray({ some: 'object' });
         expect(result.isValid).toBe(false);
         expect(result.validatedPositions.length).toBe(0);
-        expect(result.errors.some(e => e.includes('not an array'))).toBe(true);
+        expect(result.errors.some(e => e.includes('array of positions'))).toBe(true);
     });
 
     test('should return isValid: true for an empty array with no errors', () => {
@@ -180,3 +200,12 @@ if (typeof describe === 'undefined') {
     global.beforeAll = (fn) => { fn(); }; // Run immediately
     global.afterAll = (fn) => { /* As above */ };
 }
+
+// Restore the real translate() so test files loaded after this one (e.g.
+// i18n.test.js, ui.test.js sharing this same page) aren't left with our
+// key-echoing stub.
+if (typeof window !== 'undefined') {
+    window.translate = _originalTranslateForRestore;
+}
+
+})();

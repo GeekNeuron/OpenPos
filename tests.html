@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OpenPos — Test Runner (dev only)</title>
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        body { font-family: ui-monospace, monospace; background: #0f1117; color: #d7dae0; padding: 24px; }
+        h1 { font-size: 1.1rem; font-weight: 600; }
+        p { color: #8b93a5; font-size: 0.9rem; }
+        #results { margin-top: 16px; padding: 12px; background: #171a22; border: 1px solid #262b38; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>OpenPos — Browser test runner (development only)</h1>
+    <p>Open the DevTools console to see suite results. This page is not linked from the app and is not part of the production build — see README for how to wire up a real Jest run instead.</p>
+    <div id="results">Console output only — press F12 / Cmd+Opt+I.</div>
+
+    <!-- Minimal DOM skeleton so ui.js (which expects the real app markup) can
+         initialize without throwing when this page loads it standalone. -->
+    <div style="display:none">
+        <div id="positions-grid"></div>
+        <div id="loading-indicator"></div>
+        <div id="error-message"><span class="error-message-text"></span></div>
+        <div id="no-positions-message"><span class="info-message-text"></span></div>
+        <div id="list-change-announcer"></div>
+        <div id="toast-container"></div>
+        <div id="type-filter" data-value="all"><button class="segmented-btn active" data-value="all"></button></div>
+        <input id="symbol-search">
+        <select id="sort-by"><option value="default">default</option></select>
+        <div id="stats-bar"><span id="stat-total"></span><span id="stat-long"></span><span id="stat-short"></span></div>
+    </div>
+
+    <!-- App modules under test -->
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/validator.js"></script>
+    <script src="js/ui.js"></script>
+
+    <!-- Minimal describe/test/expect shim + the test suites -->
+    <script src="js/simple-jest-mock.js"></script>
+    <script src="tests/validator.test.js"></script>
+    <script src="tests/i18n.test.js"></script>
+    <script src="tests/ui.test.js"></script>
+</body>
+</html>

@@ -72,7 +72,9 @@
             },
             toBeInstanceOf: (Class) => { if (!(actual instanceof Class)) throw new Error(`Expected instanceof ${Class.name || 'Class'}, Received: ${actualStr()}`); },
             toBeGreaterThan: (num) => { if (!(actual > num)) throw new Error(`Expected ${actualStr()} to be > ${num}`);},
+            toBeGreaterThanOrEqual: (num) => { if (!(actual >= num)) throw new Error(`Expected ${actualStr()} to be >= ${num}`);},
             toBeLessThan: (num) => { if (!(actual < num)) throw new Error(`Expected ${actualStr()} to be < ${num}`);},
+            toBeLessThanOrEqual: (num) => { if (!(actual <= num)) throw new Error(`Expected ${actualStr()} to be <= ${num}`);},
             // Basic array.some equivalent for expect
             toSatisfySome: (predicate) => {
                 if (!Array.isArray(actual) || !actual.some(predicate)) {

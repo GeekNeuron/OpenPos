@@ -14,8 +14,11 @@
  * @type {string}
  * @constant
  */
-const API_URL = 'YOUR_API_ENDPOINT_HERE'; // مثال: 'https://api.coingecko.com/api/v3/derivatives/exchanges/binance_futures?include_tickers=unexpired';
-// const API_URL = 'sample_data.json'; // برای تست محلی
+// Ships pointed at the bundled sample data so the app renders something
+// useful the first time it's opened. Point this at your real endpoint,
+// e.g.: const API_URL = 'https://api.example.com/positions';
+const API_URL = 'sample_data.json';
+const API_URL_PLACEHOLDER = 'YOUR_API_ENDPOINT_HERE';
 
 /**
  * Main application function. Orchestrates initialization and data fetching.
@@ -32,6 +35,12 @@ async function mainApp() {
 
     window.ui.setLoading(true);
     let rawPositions = [];
+
+    if (API_URL === API_URL_PLACEHOLDER || !API_URL) {
+        window.ui.setLoading(false);
+        window.ui.displayError('errorApiNotConfigured');
+        return;
+    }
 
     try {
         // Fetch positions with retry logic
@@ -86,6 +95,13 @@ document.addEventListener('DOMContentLoaded', mainApp);
 
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
+    // Tracks whether this page load already had an active controller when it
+    // started. If it did, a later 'controllerchange' means a *new* SW just
+    // took over (a real update). If it didn't, the first 'controllerchange'
+    // is just the very first install claiming the page - not an update - so
+    // it must NOT trigger an automatic reload.
+    let updateInProgress = false;
+
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
             .then(registration => {
@@ -97,6 +113,7 @@ if ('serviceWorker' in navigator) {
                         if (installingWorker.state === 'installed') {
                             if (navigator.serviceWorker.controller) {
                                 console.log('New SW content is available. Showing update toast.');
+                                updateInProgress = true;
                                 window.ui.showToast(
                                     'swUpdateAvailableToast',
                                     'info',
@@ -127,7 +144,14 @@ if ('serviceWorker' in navigator) {
     let refreshing;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
-        console.log('Controller changed. Reloading page...');
+        // Skip the reload that would otherwise fire on the very first
+        // activation - only reload when we know it's a real update
+        // (the user clicked "Update Now", or one is flagged in progress).
+        if (!updateInProgress) {
+            console.log('Controller set for the first time (initial install) - not reloading.');
+            return;
+        }
+        console.log('Controller changed due to an update. Reloading page...');
         window.location.reload();
         refreshing = true;
     });
